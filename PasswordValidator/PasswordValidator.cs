@@ -1,4 +1,5 @@
 ﻿using PasswordValidator.Models;
+using PasswordValidator.Models.Enum;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
@@ -25,10 +26,19 @@ public class PasswordValidator
         CheckLowercaseLetter(password, violations);
         CheckDigit(password, violations);
         CheckSpecialCharacter(password, violations);
+
         return new PasswordValidationResult
         {
             IsValid = violations.Count == 0,
-            Violations = violations
+            Violations = violations,
+            Strength = violations.Count switch
+            {
+                0 => PasswordStrength.Strong,
+                1 => PasswordStrength.Medium,
+                2 => PasswordStrength.Medium,
+                _ => PasswordStrength.Weak
+            }
+
         };
     }
 
