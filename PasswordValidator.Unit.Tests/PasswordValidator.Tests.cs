@@ -124,4 +124,6 @@ public class PasswordValidatorTests
         var result = _passwordValidator.Validate(password);
         Assert.Equal(PasswordStrength.Strong, result.Strength);
     }
+
+    
 }

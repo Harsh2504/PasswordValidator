@@ -1,7 +1,5 @@
 ﻿using PasswordValidator.Models;
 using PasswordValidator.Models.Enum;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 
 namespace PasswordValidator;
@@ -9,6 +7,12 @@ namespace PasswordValidator;
 public class PasswordValidator
 {
     private readonly List<PasswordRuleViolation> violations = new List<PasswordRuleViolation>();
+    private readonly PasswordPolicy _policy;
+
+    public PasswordValidator(PasswordPolicy? policy = null)
+    {
+        _policy = policy ?? new PasswordPolicy();
+    }
 
     public PasswordValidationResult Validate(string password)
     {
@@ -21,7 +25,6 @@ public class PasswordValidator
             };
         }
         CheckLength(password, violations);
-
         CheckUppercaseLetter(password, violations);
         CheckLowercaseLetter(password, violations);
         CheckDigit(password, violations);
@@ -58,7 +61,7 @@ public class PasswordValidator
 
     private void CheckLength(string password, List<PasswordRuleViolation> violations)
     {
-        if (password.Length < 8)
+        if (password.Length < _policy.MinimumLength)
         {
             violations.Add(new PasswordRuleViolation
             {
@@ -70,7 +73,7 @@ public class PasswordValidator
 
     private void CheckUppercaseLetter(string password, List<PasswordRuleViolation> violations)
     {
-        if (!password.Any(char.IsUpper))
+        if (_policy.RequireUppercase && !password.Any(char.IsUpper))
         {
             violations.Add(new PasswordRuleViolation
             {
@@ -82,7 +85,7 @@ public class PasswordValidator
 
     private void CheckLowercaseLetter(string password, List<PasswordRuleViolation> violations)
     {
-        if (!password.Any(char.IsLower))
+        if (_policy.RequireLowercase && !password.Any(char.IsLower))
         {
             violations.Add(new PasswordRuleViolation
             {
@@ -94,7 +97,7 @@ public class PasswordValidator
 
     private void CheckDigit(string password, List<PasswordRuleViolation> violations)
     {
-        if (!password.Any(char.IsDigit))
+        if (_policy.RequireDigit && !password.Any(char.IsDigit))
         {
             violations.Add(new PasswordRuleViolation
             {
@@ -108,7 +111,7 @@ public class PasswordValidator
     {
         var regex = @"[!@#$%^&*\(\)\-_+=\{\}\[\]:;""'<>,\.?/\\|~]";
 
-        if (!Regex.IsMatch(password, regex))
+        if (_policy.RequireSpecial && !Regex.IsMatch(password, regex))
         {
             violations.Add(new PasswordRuleViolation
             {
@@ -119,8 +122,7 @@ public class PasswordValidator
     }
     private bool CheckPasswordSpaces(string password, List<PasswordRuleViolation> violations)
     {
-
-        if (password.Any(char.IsWhiteSpace))
+        if (!_policy.AllowSpaces && password.Any(char.IsWhiteSpace))
         {
             violations.Add(new PasswordRuleViolation
             {
